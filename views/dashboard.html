@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <style>
+        /* General page styles */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        form {
+            max-width: 400px;
+            margin: 20px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        form label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        form input {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        form button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        form button:hover {
+            background-color: #45a049;
+        }
+
+        /* Table styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        td {
+            color: #555;
+        }
+
+        /* Button styles */
+        button {
+            display: block;
+            width: 200px;
+            margin: 20px auto;
+            padding: 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Dashboard</h1>
+
+    <!-- Form to offer a skill -->
+    <h2>Offer a Skill</h2>
+    <form id="offerSkillForm">
+        <label for="offerSkill">Skill:</label>
+        <input type="text" id="offerSkill" name="skill" required>
+        <button type="submit">Offer Skill</button>
+    </form>
+
+    <!-- Form to request a skill -->
+    <h2>Request a Skill</h2>
+    <form id="requestSkillForm">
+        <label for="requestSkill">Skill:</label>
+        <input type="text" id="requestSkill" name="skill" required>
+        <button type="submit">Request Skill</button>
+    </form>
+
+    <!-- Table to display user skills -->
+    <h2>Your Skills</h2>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>Offered Skills</th>
+                <th>Requested Skills</th>
+            </tr>
+        </thead>
+        <tbody id="skillsTableBody">
+            
+        </tbody>
+    </table>
+
+    <button onclick="window.location.href='/dashboard/all-skills'">Next</button>
+
+    <script>
+        async function fetchSkills() {
+            try {
+                const response = await fetch('/dashboard/skills');
+                const data = await response.json();
+                const tableBody = document.getElementById('skillsTableBody');
+
+                
+                tableBody.innerHTML = '';
+
+                
+                data.forEach(user => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${user.email}</td>
+                        <td>${user.offered.join(', ')}</td>
+                        <td>${user.requested.join(', ')}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error fetching skills:', error);
+            }
+        }
+
+        document.getElementById('offerSkillForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const skill = document.getElementById('offerSkill').value;
+            try {
+                const response = await fetch('/dashboard/offer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ skill }),
+                });
+                const result = await response.json();
+                if (result.message) {
+                    fetchSkills(); 
+                } else {
+                    console.error(result.error);
+                }
+            } catch (error) {
+                console.error('Error offering skill:', error);
+            }
+        });
+
+        document.getElementById('requestSkillForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const skill = document.getElementById('requestSkill').value;
+            try {
+                const response = await fetch('/dashboard/request', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ skill }),
+                });
+                const result = await response.json();
+                if (result.message) {
+                    fetchSkills(); 
+                } else {
+                    console.error(result.error);
+                }
+            } catch (error) {
+                console.error('Error requesting skill:', error);
+            }
+        });
+
+        fetchSkills();
+    </script>
+</body>
+</html>
